@@ -1,11 +1,11 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "drone-runner-kube.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
-{{- if semverCompare "<1.14" .Capabilities.KubeVersion.Version -}}
+{{- if semverCompare "<1.14" .Capabilities.KubeVersion.Version }}
 apiVersion: extensions/v1beta1
-{{- else if semverCompare "<1.22" .Capabilities.KubeVersion.Version -}}
+{{- else if semverCompare "<1.20" .Capabilities.KubeVersion.Version }}
 apiVersion: networking.k8s.io/v1beta1
-{{- else -}}
+{{- else }}
 apiVersion: networking.k8s.io/v1
 {{- end }}
 kind: Ingress
@@ -38,16 +38,17 @@ spec:
         paths:
         {{- range .paths }}
           - path: {{ . }}
-            {{- if semverCompare "<1.22" $.Capabilities.KubeVersion.Version -}}
+            {{- if semverCompare "<1.20" $.Capabilities.KubeVersion.Version }}
             backend:
               serviceName: {{ $fullName }}
               servicePort: {{ $svcPort }}
-            {{- else -}}
+            {{- else }}
             pathType: Prefix
-            service:
-              name: {{ $fullName }}
-              port:
-                number: {{ $svcPort }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
             {{- end }}
         {{- end }}
   {{- end }}
